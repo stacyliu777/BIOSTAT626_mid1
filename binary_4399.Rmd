@@ -1,0 +1,82 @@
+---
+title: "626_midterm project"
+author: "Stacy Liu"
+date: "2023-04-09"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+training_data <- read.table("~/Desktop/midterm 626/training_data.txt", quote="\"", comment.char="", header = TRUE)
+#test_data <- read.table("~/Desktop/midterm 626/test_data.txt", quote="\"", comment.char="", header = TRUE)
+```
+
+```{r}
+# Preprocess data as needed
+
+# Create binary classification variable in both data frames
+training_data$classification <- ifelse(training_data$activity <= 3, "static", "dynamic")
+training_data$binary_classification <- ifelse(training_data$classification == "static", 0, 1)
+
+Training_set = training_data[1:4500,]
+Testing_data = training_data[4501:7767,]
+
+# Train binary classification model on training data
+model <- glm(binary_classification ~ .-subject - activity, data = Training_set, family = "binomial")
+summary(model)
+
+# Make predictions on testing data using trained model
+predictions <- predict(model, newdata = Testing_data, type = "response")
+predicted_classes <- ifelse(predictions >= 0.5, "dynamic", "static")
+
+#decision rule
+glm.pred = rep("static", dim(Testing_data)[1]) 
+glm.pred[predictions > 0.5] = "static"
+True_Direction = Testing_data$classification
+table(glm.pred, True_Direction)
+mean(glm.pred == True_Direction)
+```
+
+```{r}
+training_data <- subset(training_data, select = -c(activity,classification))
+Training_set = training_data[1:4500,]
+Testing_data = training_data[4501:7767,]
+
+# Train binary classification model on training data
+model2 <- glm(binary_classification ~ .-subject, data = Training_set, family = "binomial")
+
+# Read in testing data
+my_testdata <- read.table("~/Desktop/midterm 626/test_data.txt", quote="\"", comment.char="", header = TRUE)
+
+# Predict binary classification on test data using trained model
+my_testdata$binary_classification <- predict(model2, newdata = my_testdata, type = "response")
+
+# Convert predicted probabilities to binary classification
+my_testdata$binary_classification <- ifelse(my_testdata$binary_classification >= 0.5, 1, 0)
+my_testdata$binary_classification
+```
+
+```{r}
+write.table(my_testdata$binary_classification, file = "binary_4399.txt", sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

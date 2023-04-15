@@ -1,0 +1,93 @@
+---
+title: "multiclass_4399"
+author: "Stacy Liu"
+date: "2023-04-10"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+training_data <- read.table("~/Desktop/midterm 626/training_data.txt", quote="\"", comment.char="", header = TRUE)
+```
+
+```{r}
+# Preprocess data as needed
+
+# Create multi classification variable in both data frames
+training_data$classification <- ifelse(training_data$activity == 1, "1",
+                        ifelse(training_data$activity == 2, "2",
+                        ifelse(training_data$activity == 3, "3",
+                        ifelse(training_data$activity == 4, "4",
+                        ifelse(training_data$activity == 5, "5",
+                        ifelse(training_data$activity == 6, "6",
+                        "7"))))))
+
+training_data$multi_classification <- ifelse(training_data$classification == "1", 1,
+                        ifelse(training_data$classification == '2', 2,
+                        ifelse(training_data$classification == '3', 3,
+                        ifelse(training_data$classification == '4', 4,
+                        ifelse(training_data$classification == '5', 5,
+                        ifelse(training_data$classification == '6', 6,
+                        7))))))
+
+training_data <- subset(training_data, select = -c(activity,classification))
+Training_set = training_data[1:4500,]
+Testing_data = training_data[4501:7767,]
+
+library(MASS)
+
+# Fit the LDA model
+lda_model <- lda(multi_classification ~ ., data = Training_set)
+
+# Make predictions on the test data
+test_pred <- predict(lda_model, Testing_data)
+lda_class <- test_pred$class
+lda_class
+# View the predicted class probabilities
+#test_pred$posterior
+```
+
+```{r}
+# Read in testing data
+my_testdata2 <- read.table("~/Desktop/midterm 626/test_data.txt", quote="\"", comment.char="", header = TRUE)
+
+test_fit <- predict(lda_model, newdata = my_testdata2, type = "response")
+my_testdata2$lda_test_class <- test_fit$class
+my_testdata2$lda_test_class
+```
+
+
+```{r}
+library(readr)
+
+# Convert to data frame
+my_testdata2_df <- as.data.frame(my_testdata2$lda_test_class)
+
+# Write to file
+write_delim(my_testdata2_df, file = "multiclass_4399.txt", delim = "\t", col_names = FALSE)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
